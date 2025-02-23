@@ -1,6 +1,7 @@
 from utils import *
 import os
 from data_dict import sentence_identifier
+import streamlit as st
 
 storagegrid_dict = {
     
@@ -96,43 +97,46 @@ for i in storagegrid_dict.values():
 
 sentence_identifier=sentences
 
-question="While there is no requirement for the solution to fit with a private cloud infrastructure, this is a chance for the proponent to showcase its product’s features, it will be used to ensure that the products fit well into company's future direction."
+st.title("RPF Response Generator - NetApp Storage Grid")
+question = st.text_area("Enter your question:")
 
-topic_finder(question=question,topics=sentence_identifier)
+st.button("Generate Response")
 
-query_topic_dict={}
+if st.button:
 
-topics=[]
+    topic_finder(question=question,topics=sentence_identifier)
 
-documents_metadata=[]
+    query_topic_dict={}
 
-question_list=query_breakdown(query=question)
+    topics=[]
 
-for question in question_list:
-    topics.append(topic_finder(question=question,topics=sentence_identifier))
+    documents_metadata=[]
 
+    question_list=query_breakdown(query=question)
 
-for i in range(0,len(topics)):
-    query_topic_dict[question_list[i]]=topics[i]
-
-for key,value in query_topic_dict.items():
-        documents_metadata.append(get_relevant_data(key,value))
-
-flat_list = [num for sublist in documents_metadata for num in sublist]
+    for question in question_list:
+        topics.append(topic_finder(question=question,topics=sentence_identifier))
 
 
-final_metadata_list=[num for sublist in flat_list for num in sublist]
+    for i in range(0,len(topics)):
+        query_topic_dict[question_list[i]]=topics[i]
 
-context=""
+    for key,value in query_topic_dict.items():
+            documents_metadata.append(get_relevant_data(key,value))
 
-for data in final_metadata_list:
-    context=context+"\n"+data.page_content+"\n"+"---------------------------------------------------------------------------------"+"\n"
-
-output=final_response(docs=context,query=question)
-
+    flat_list = [num for sublist in documents_metadata for num in sublist]
 
 
-print(output)
+    final_metadata_list=[num for sublist in flat_list for num in sublist]
+
+    context=""
+
+    for data in final_metadata_list:
+        context=context+"\n"+data.page_content+"\n"+"---------------------------------------------------------------------------------"+"\n"
+
+    output=final_response(docs=context,query=question)
+
+    st.write(output.content)
 
 
 
