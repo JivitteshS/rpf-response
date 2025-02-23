@@ -14,9 +14,9 @@ from langchain_astradb import AstraDBVectorStore
 
 
 
-os.environ["OPENAI_API_VERSION"] = "2024-02-01"
-os.environ["AZURE_OPENAI_ENDPOINT"] = "https://expazure-openai.openai.azure.com/"
-os.environ["AZURE_OPENAI_API_KEY"] = "7NfDltek1fOyeUm4UDN9Ng8wmagQxtd54CfuS4TcCk6tvtu8nTrEJQQJ99ALAC4f1cMXJ3w3AAABACOGHgtJ"
+OPENAI_API_VERSION = os.getenv('OPENAI_API_VERSION')
+AZURE_OPENAI_ENDPOINT  = os.getenv('AZURE_OPENAI_ENDPOINT')
+AZURE_OPENAI_API_KEY = os.getenv('AZURE_OPENAI_API_KEY')
 
 llm = AzureChatOpenAI(
     azure_deployment="gpt35",
