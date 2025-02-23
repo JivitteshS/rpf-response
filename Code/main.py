@@ -2,9 +2,16 @@ from utils import *
 import os
 from data_dict import sentence_identifier
 
-
 storagegrid_dict = {
-    "Install, Upgrade and Hotfix StorageGRID": [
+    
+   "Get started with StorageGRID system" :[
+    "What is StorageGRID:NetApp StorageGRID is a software-defined object storage solution. Supports public, private, and hybrid multicloud environments with native Amazon S3 API support.Focuses on automated lifecycle management to manage unstructured data cost-effectively." ,
+    "Core Features: Massively scalable, metadata-driven lifecycle management.Integration with AWS, Azure, and OpenStack Swift (support for Swift is deprecated).Flexible data protection with replication and erasure coding." ,
+    "Hybrid Cloud Capabilities: Policy-driven data management for storage optimization.Integration with external storage like Amazon S3 Glacier, Google Cloud, and Azure Blob Storage.CloudMirror replication and event notifications for external service integration." ,
+    "Data Protection: Supports replication and erasure coding to protect object data.ILM (Information Lifecycle Management) for data storage, protection, and deletion policies.S3 Object Lock for data retention and legal holds." ,
+    "Networking & Management:Three network types: Grid Network (mandatory), Admin Network (optional), Client Network (optional).High availability and virtual IP support for redundancy.Grid Manager for configuration and monitoring, Tenant Manager for storage account management."
+],
+    "Install,Upgrade and hotflix StorageGRID": [
         "Installation Overview: Describes the steps required to install the StorageGRID system, including configuring nodes and downloading the recovery package.",
         "Post-Installation Guidelines: Provides instructions for tasks such as DHCP addressing and network configuration changes after completing grid node deployment and configuration.",
         "Virtual Machine Resource Reservation: Details the process of adjusting resources for virtual machines to ensure sufficient RAM and CPU for each grid node.",
@@ -16,14 +23,14 @@ storagegrid_dict = {
         "Integration and Configuration Tasks: Lists required and optional tasks after installation, such as creating tenant accounts, configuring groups and user accounts, integrating S3 or Swift API client applications, and configuring ILM rules and policies.",
         "Documentation and Support: Mentions the documentation site for appliances and support for FIPS 140-2 validated cryptography."
     ],
-    "Configure and Manage a StorageGRID": [
+    "Configure and manage a storageGRID system": [
         "Grid Management API: Describes the use of the Swagger API platform to perform real-time operations in StorageGRID.",
         "Monitoring Data Migration: Provides guidelines for monitoring attributes and managing data migration in the StorageGRID system.",
         "Information Lifecycle Management (ILM): Covers ILM rules and policies for managing object data throughout its lifecycle in StorageGRID.",
         "Admin Group Permissions: Explains the creation and management of admin user groups, including assigning permissions and managing access modes.",
         "Log Files and System Status: Details various log files and system status files, including their contents and how to interpret them."
     ],
-    "Use StorageGRID Tenants and Clients": [
+    "Use StorageGRID tenant and clients": [
         "Tenant Account Overview: Describes the purpose and capabilities of a tenant account in StorageGRID.",
         "Creating a Tenant Account: Steps and requirements for a StorageGRID grid administrator to create a tenant account.",
         "Configuring S3 Tenants: Tasks that can be performed using the Tenant Manager for S3 tenant accounts.",
@@ -32,7 +39,7 @@ storagegrid_dict = {
         "Tenant Manager Dashboard: Overview of the dashboard's features and the information it displays about tenant accounts.",
         "Storage and Quota Usage: Details on how storage usage and quotas are monitored and managed."
     ],
-    "Monitor and Troubleshoot a StorageGRID": [
+    "Monitor and troubleshoot a storageGRID system": [
         "Monitor StorageGRID System: Regular monitoring of the StorageGRID system ensures optimal performance and early detection of issues.",
         "View and Manage the Dashboard: The dashboard provides an overview of system activities and allows for customization to fit specific monitoring needs.",
         "View the Nodes Page: The Nodes page offers detailed metrics for the entire grid, each site, and individual nodes, helping in deeper analysis of system performance.",
@@ -44,7 +51,7 @@ storagegrid_dict = {
         "Tenant Activity: Monitoring tenant activity helps in understanding resource usage and managing tenant-specific performance issues.",
         "Networking and System Resources: Keeping an eye on networking and system resources ensures that the infrastructure supports the StorageGRID operations effectively."
     ],
-    "Expand a StorageGRID": [
+    "Expand a Grid": [
         "Plan StorageGRID Expansion: Strategies and considerations for planning an effective expansion of the StorageGRID system.",
         "Guidelines for Adding Storage Volumes: Detailed instructions and limitations on how to add storage volumes to different types of Storage Nodes.",
         "Guidelines for Adding Storage Nodes: Best practices and limitations for adding new Storage Nodes to existing sites.",
@@ -54,7 +61,7 @@ storagegrid_dict = {
         "Considerations for Rebalancing Erasure-Coded Data: Insights into the EC rebalance procedure necessary when adding new Storage Nodes to handle erasure-coded data.",
         "Add Metadata Capacity: Instructions on expanding metadata capacity by adding new Storage Nodes to each site."
     ],
-    "Maintain a StorageGRID": [
+    "Maintain a Storage GRID": [
         "Grid Maintenance Overview: Covers tasks like decommissioning nodes, renaming the grid, and maintaining networks.",
         "Maintenance Procedures for Appliances: Provides guidelines for maintaining StorageGRID appliances according to specific hardware instructions.",
         "Download Recovery Package: Instructions on downloading a Recovery Package to restore the system in case of a failure.",
@@ -81,6 +88,7 @@ storagegrid_dict = {
 }
 
 
+
 storagegrid_dict.values()
 sentences=[]
 for i in storagegrid_dict.values():
@@ -90,24 +98,37 @@ sentence_identifier=sentences
 
 question="While there is no requirement for the solution to fit with a private cloud infrastructure, this is a chance for the proponent to showcase its product’s features, it will be used to ensure that the products fit well into company's future direction."
 
-doc_list=[]
-formed_question=query_fromer(question=question)
-print(formed_question)
+topic_finder(question=question,topics=sentence_identifier)
 
-topics=topic_finder(question=formed_question,topics=sentence_identifier)
+query_topic_dict={}
+
+topics=[]
+
+documents_metadata=[]
+
+question_list=query_breakdown(query=question)
+
+for question in question_list:
+    topics.append(topic_finder(question=question,topics=sentence_identifier))
 
 
-vector_dbs=[os.path.normpath(vector_db(topic=top)) for top in topics]
+for i in range(0,len(topics)):
+    query_topic_dict[question_list[i]]=topics[i]
+
+for key,value in query_topic_dict.items():
+        documents_metadata.append(get_relevant_data(key,value))
+
+flat_list = [num for sublist in documents_metadata for num in sublist]
 
 
-for i in range(0,len(vector_dbs)):
-    docs=retrieve_docs(vector_dbs[i],question=question)
-    combined_docs= [docs[0].page_content,docs[1].page_content,docs[2].page_content,docs[3].page_content]
-    doc_list=doc_list+combined_docs
+final_metadata_list=[num for sublist in flat_list for num in sublist]
 
-final_docs="\n============\n".join(doc_list)
+context=""
 
-output=final_response(docs=doc_list,query=formed_question)
+for data in final_metadata_list:
+    context=context+"\n"+data.page_content+"\n"+"---------------------------------------------------------------------------------"+"\n"
+
+output=final_response(docs=context,query=question)
 
 
 

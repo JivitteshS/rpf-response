@@ -2,43 +2,27 @@
 import json
 import requests
 from data_dict import *
-from langgraph.graph import StateGraph
-from typing import TypedDict, List, Annotated
+import re
 from langchain_openai import AzureChatOpenAI
-import operator
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.pydantic_v1 import BaseModel, Field
-from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.pydantic_v1 import BaseModel, Field
-from langchain_openai import ChatOpenAI
-from langgraph.graph import END
+from langchain_nvidia import ChatNVIDIA
 from langchain_core.messages import HumanMessage, SystemMessage
 import os
-# from langchain_community.document_loaders import WebBaseLoader
-from langgraph.graph import END, StateGraph, START
 from langchain_openai import AzureOpenAIEmbeddings
-# from langchain_community.vectorstores import Chroma
-from langchain_openai import OpenAIEmbeddings
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.output_parsers import StrOutputParser
-from typing import List
-from langchain_community.vectorstores import FAISS
-from typing_extensions import TypedDict
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_astradb import AstraDBVectorStore
 
 
 
 os.environ["OPENAI_API_VERSION"] = "2024-02-01"
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://expazure-openai.openai.azure.com/"
-os.environ["AZURE_OPENAI_API_KEY"] = "0f5cb3c2ad3d40d9a76142c3f49cad9f"
+os.environ["AZURE_OPENAI_API_KEY"] = "7NfDltek1fOyeUm4UDN9Ng8wmagQxtd54CfuS4TcCk6tvtu8nTrEJQQJ99ALAC4f1cMXJ3w3AAABACOGHgtJ"
 
 llm = AzureChatOpenAI(
     azure_deployment="gpt35",
     api_version="2024-02-01",
     temperature=0,
-    max_tokens=2000,
+    max_tokens=4096,
     timeout=None,
     max_retries=2,
     )
@@ -66,7 +50,31 @@ def get_key_from_value(d, value):
             return key
     return None 
 
+def get_relevant_data(topics,question):
+    docs_retrieved=[]
+    embeddings = AzureOpenAIEmbeddings(
+        azure_deployment="embeddingada",
+        openai_api_version="2024-02-01",
+        api_key="7NfDltek1fOyeUm4UDN9Ng8wmagQxtd54CfuS4TcCk6tvtu8nTrEJQQJ99ALAC4f1cMXJ3w3AAABACOGHgtJ",
+        azure_endpoint= "https://expazure-openai.openai.azure.com/"
+    )
+    vector_store = AstraDBVectorStore(
+            collection_name="rpf_data",
+            embedding=embeddings,
+            api_endpoint="https://fe1e130e-4fcb-43ed-a3c4-a87258f9a9e6-us-east-2.apps.astra.datastax.com",
+            token="AstraCS:apyneBXFJQyZgFlXZNmSZNiv:8231981b7864751892f805731b6817ae1ae4e060fc74eb3ed82d1b56d12b026d",
+            namespace="default_keyspace",
+        )
+    for topic in topics:
+        results = vector_store.similarity_search(
+                f"{question}",
+                k=3,
+                filter={"topic": f"{topic}"},
+            )
 
+        docs_retrieved.append(results)
+
+    return docs_retrieved
 
 # FInd the list of topics that can contain the answer for the user query
 def topic_finder(question,topics):
@@ -100,77 +108,71 @@ def topic_finder(question,topics):
     return list(set(topic_list))
 
 # print(topic_finder(question="abcd",topics=sentence_identifier))
+def query_breakdown(query):
 
-def query_fromer(question):
+    llm = ChatNVIDIA(model="meta/llama-3.1-405b-instruct",temperature=0,
+                    nvidia_api_key="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")
     messages = [
-        SystemMessage(content=f"""You are a question reinterpreter.The queries are provided by Customers to NetApp Storage Grid
-        a Data Storage Management System.
-            
-            --If the provided question is not properly formed, then form a proper question out of the input.
-            --If the provided question is given as a proper query then return the output as it is.
-            --DO NOT loose information from the input
-            
-            Output: Return only the reformed question as the output.
-            """),
-        HumanMessage(content=f"Here is the question:{question}"),
+        SystemMessage(content=f"""You are a helpful assistant in breaking down the customers-provided queries from the NetApp Storage Grid Data Storage Management System.
+
+    You will be provided with a query.You have to provide the output in json format
+
+    Follow the instructions to provide the output.
+
+    1. Understand the question .
+    2. break it into multiple questions if required.
+    3. Provide the questions as output. STRICTLY Provide the output in json format with only the questions.
+        """),
+        HumanMessage(content=f"Here is the question:{query}"),
     ]
-                    
-
     chain=llm | StrOutputParser()
-
-    output=chain.invoke(messages)
-
-    return output
-
-
-
-def vector_db(topic):
-
-    topic_vectordb_dict={"Configure and Manage a StorageGRID": r"Vector_data\Configure and manage a storageGRID system",
-                         "Expand a StorageGRID": r"Vector_data\Expand a Grid",
-                         "Install, Upgrade and Hotfix StorageGRID" : r"Vector_data\Install,Upgrade and hotflix StorageGRID",
-                         "Maintain a StorageGRID": r"Vector_data\Maintain a Storage Grid",
-                         "Monitor and Troubleshoot a StorageGRID":r"Vector_data\Monitor and troubleshoot a storageGRID system",
-                      "Recovery or Replace Nodes" :r"Vector_data\Recovery or Replace Nodes",
-                     "Use StorageGRID Tenants and Clients": r"Vector_data\UseStorageGRID tenant and clients"
-                           }
-
-    vector_db=topic_vectordb_dict.get(topic)
-
-    return vector_db
-
-# print(vector_db("Recovery or Replace Nodes"))
-
-
-def retrieve_docs(vector_db,question):
+    questions=chain.invoke(messages)
     
-    database=FAISS.load_local(vector_db,embeddings,allow_dangerous_deserialization=True)
+    result = llm.invoke(f"You are a json extractor. Extract the json data from the given string {questions}.OUTPUT should be STRICTLY in JSON Format. only the text within curly braces")
+
     
-    retriever=database.as_retriever()
     
-    docs = retriever.get_relevant_documents(question)
-    
-    documents=[docs[i] for i in range(0,4)]
-    
-    return documents
+    match = re.search(r'```\s*({.*?})\s*```',result.content, re.DOTALL)
+    if match:
+        extracted_json = match.group(1)
+        print(extracted_json)
+
+    queries=json.loads(extracted_json)
+
+    query_list = queries["questions"]
+
+    return query_list
+
 
 # print(retrieve_docs(r"Vector_data\UseStorageGRID tenant and clients","Does the solution have automatic failure notification via email, text, and other methods?"))
 
 def final_response(docs,query):
+    
 
-    prompt=f"""----------------------------
-    This is the query: {query}.
-    -----------------------------------
-    These are the dcouments: {docs}
-    ----------------------------------
-    Answer the query based on the provided documents.Do not asnwer things on your own.Answer only from the data provided.    
+    prompt=f"""A query/topic is provided along with relevant documents. Your tasks is to answer the query/topic based on the documents provided. 
+
+----------------------------
+  query: {query}.
+  -----------------------------------
+  dcouments: {docs}
+  ----------------------------------
+
+Instructions:
+1. Be descriptive 
+2. Answer only from documents provided
+3. Do not use the word "based on documents provided"
     """
     llm = AzureChatOpenAI(
     deployment_name="gpt35",
+      api_key="7NfDltek1fOyeUm4UDN9Ng8wmagQxtd54CfuS4TcCk6tvtu8nTrEJQQJ99ALAC4f1cMXJ3w3AAABACOGHgtJ",
+        azure_endpoint= "https://expazure-openai.openai.azure.com/",
+        temperature=0,
+        max_tokens=4096
                 )
     output=llm.invoke(prompt)
 
     return output
+
 
 
 
