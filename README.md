@@ -1,16 +1,13 @@
 ### RFP Response Creation Hackathon
 
-This project involves creating a question answering bot that can provide responses for questions posted by the customer for NetApp Storage Grid.
-
-
-Have provided an example for the input and output below:
-![Alt text](https://github.com/JivitteshS/rpf_response/blob/main/Response%20example.png)
-
+This project involves creating a question answering bot that can provide responses for questions posted by the customer for NetApp Storage Grid. 
 
 ### The project involves following steps:
 
 #### 1.Data Extraction
-The Netapp storage grid document pdf is split based on the 8 topics (8 pdfs) present in the document. Each pdf is taken and text, image and tables are extracted from each page and stored locally.For the table and image data we are creating summaries using llama 405b instruct model. the text , image and table summaries are taken for data ingestion.
+The Netapp storage grid document pdf is split based on the 8 topics (8 pdfs) present in the document. Each pdf is taken and text, image and tables are extracted from each page and stored locally.For the table and image data we are creating summaries using llama model. the text , image and table summaries are taken for data ingestion.
+
+Tools used: Pymupdf , Nvidia AI , pdfplumber , Langchain
 
 #### 2.VectorDatabase creation
 AstraDB is used for storing the vectordata.The metadata for the data consists of following fields 
@@ -21,6 +18,8 @@ AstraDB is used for storing the vectordata.The metadata for the data consists of
 * Table_json {table data incase if the type of text is table}
 * Image_summary {summary of image if the type of text is image}
 
+Tools used: Astradb, Azure OpenAI Embeddings
+
 #### 3.Response creation
 
 * Query input is split into  multiple subqueries if the input query has multiple topics to it.
@@ -29,8 +28,14 @@ AstraDB is used for storing the vectordata.The metadata for the data consists of
 * Now we search the vectordata with subquery and its sub topics as metadata filter to retreive the documents.
 * We then take these documents  with initial query and pass it on to the LLM for generating the final response.
 
+Tools used: Streamlit, Azure OpenAI , Langchain, Hugging face , Nvidia AI
+
+The final query response generator is deployed as streamlit app.
 
 
+
+Have provided an example for the input and output below:
+![Alt text](https://github.com/JivitteshS/rpf_response/blob/main/Response%20example.png)
 
 
 
