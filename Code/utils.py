@@ -11,29 +11,34 @@ from langchain_openai import AzureOpenAIEmbeddings
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.output_parsers import StrOutputParser
 from langchain_astradb import AstraDBVectorStore
+import os
+from dotenv import load_dotenv
 
+# Load .env file
+load_dotenv()
 
 
 OPENAI_API_VERSION = os.getenv('OPENAI_API_VERSION')
 AZURE_OPENAI_ENDPOINT  = os.getenv('AZURE_OPENAI_ENDPOINT')
 AZURE_OPENAI_API_KEY = os.getenv('AZURE_OPENAI_API_KEY')
+ASTRADB_ENDPOINT =os.getenv('ASTRADB_ENDPOINT')
+ASTRADB_TOKEN = os.getenv('ASTRADB_TOKEN')
+NVIDIA_API_KEY = os.getenv('NVIDIA_API_KEY')
+HUGGINGFACE_TOKEN = os.getenv('HUGGINGFACE_TOKEN')
+HUGGINGFACE_URL = os.getenv('HUGGINGFACE_URL')
+
 
 llm = AzureChatOpenAI(
     azure_deployment="gpt35",
     api_version="2024-02-01",
+    azure_endpoint=AZURE_OPENAI_ENDPOINT,
+    api_key=AZURE_OPENAI_API_KEY,
     temperature=0,
     max_tokens=4096,
     timeout=None,
     max_retries=2,
     )
 
-
-
-
-embeddings = AzureOpenAIEmbeddings(
-    azure_deployment="embeddingada",
-    openai_api_version="2024-02-01",
-)
 api_token="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"
 API_URL = "https://api-inference.huggingface.co/models/sentence-transformers/msmarco-distilbert-base-tas-b"
 headers = {"Authorization": f"Bearer {api_token}"}
@@ -55,14 +60,14 @@ def get_relevant_data(topics,question):
     embeddings = AzureOpenAIEmbeddings(
         azure_deployment="embeddingada",
         openai_api_version="2024-02-01",
-        api_key="7NfDltek1fOyeUm4UDN9Ng8wmagQxtd54CfuS4TcCk6tvtu8nTrEJQQJ99ALAC4f1cMXJ3w3AAABACOGHgtJ",
-        azure_endpoint= "https://expazure-openai.openai.azure.com/"
+        api_key=AZURE_OPENAI_API_KEY,
+        azure_endpoint= AZURE_OPENAI_ENDPOINT
     )
     vector_store = AstraDBVectorStore(
             collection_name="rpf_data",
             embedding=embeddings,
-            api_endpoint="https://fe1e130e-4fcb-43ed-a3c4-a87258f9a9e6-us-east-2.apps.astra.datastax.com",
-            token="AstraCS:apyneBXFJQyZgFlXZNmSZNiv:8231981b7864751892f805731b6817ae1ae4e060fc74eb3ed82d1b56d12b026d",
+            api_endpoint=ASTRADB_ENDPOINT,
+            token=ASTRADB_TOKEN,
             namespace="default_keyspace",
         )
     for topic in topics:
@@ -111,7 +116,7 @@ def topic_finder(question,topics):
 def query_breakdown(query):
 
     llm = ChatNVIDIA(model="meta/llama-3.1-405b-instruct",temperature=0,
-                    nvidia_api_key="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")
+                    nvidia_api_key=NVIDIA_API_KEY)
     messages = [
         SystemMessage(content=f"""You are a helpful assistant in breaking down the customers-provided queries from the NetApp Storage Grid Data Storage Management System.
 
@@ -162,13 +167,7 @@ Instructions:
 2. Answer only from documents provided
 3. Do not use the word "based on documents provided"
     """
-    llm = AzureChatOpenAI(
-    deployment_name="gpt35",
-      api_key="7NfDltek1fOyeUm4UDN9Ng8wmagQxtd54CfuS4TcCk6tvtu8nTrEJQQJ99ALAC4f1cMXJ3w3AAABACOGHgtJ",
-        azure_endpoint= "https://expazure-openai.openai.azure.com/",
-        temperature=0,
-        max_tokens=4096
-                )
+
     output=llm.invoke(prompt)
 
     return output
