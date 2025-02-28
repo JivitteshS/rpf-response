@@ -16,11 +16,29 @@ Have provided an example for the input and output below:
 ```
 rpf_Response/
 ├── Code/
+│   ├── __pycache__/
+│   ├── .env
+│   ├── data_dict.py
 │   ├── main.py
 │   ├── utils.py
-├── requirements.txt
+├── Data Extraction/
+├── Data/
+│   ├── NetApp StorageGrid 11 8 Complete Document.pdf
+├── Experiments/
+│   ├── 1. Building Question topic generator.ipynb
+│   ├── 2. Query former.ipynb
+│   ├── 3. Revert Response to required DB.ipynb
+│   ├── 4. retrieve_docs_from_query.ipynb
+│   ├── Building Initial Steps.ipynb
+│   ├── astra_db.ipynb
+│   ├── astra_db_exp.ipynb
+├── .gitignore
 ├── Dockerfile
-└── README.md
+├── GenAI_RFP_Question_NetApp StorageGrid.xlsx
+├── README.md
+├── Response example.png
+├── requirements.txt
+
 ```
 
 ---
