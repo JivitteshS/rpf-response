@@ -176,19 +176,6 @@ After running, access the app at:
 
 ---
 
-## 👥 Contributors
-
-- [Your Name or Team Name]  
-- [Your GitHub Profile or Contact Info]
-
----
-
-## 📜 License
-
-This project is licensed under the [MIT License](LICENSE).
-
----
-
 ## 📬 Contact
 
 For questions, suggestions, or contributions, please raise an issue in this repository.
