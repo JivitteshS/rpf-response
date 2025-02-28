@@ -11,7 +11,7 @@ Have provided an example for the input and output below:
 
 ---
 
-## 📁 Project Structure
+## 📁 Folder Structure
 
 ```
 rpf_Response/
@@ -141,7 +141,7 @@ After running, access the app at:
 
 ---
 
-## 📂 Folder Structure Explained
+## 📂 Main files information
 
 | File/Folder | Purpose |
 |---|---|
