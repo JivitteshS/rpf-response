@@ -97,15 +97,6 @@ The query handling process works as follows:
 - Hugging Face  
 - Nvidia AI  
 
----
-
-### 📌 Example Input & Output
-
-#### Example Input
-> What are the data protection features and security features offered by NetApp Storage Grid?
-
-#### Example Output
-> NetApp Storage Grid offers comprehensive data protection mechanisms including erasure coding, replication across geo-locations, and robust access control policies. Security features include role-based access control (RBAC), audit logging, encryption at rest and in transit, and integration with external identity providers such as LDAP or Active Directory.
 
 ---
 
@@ -126,7 +117,7 @@ pip install -r requirements.txt
 ### 3. Run Locally
 
 ```bash
-python Code/main.py
+python streamlit run Code/main.py
 ```
 
 ---
@@ -139,7 +130,7 @@ python Code/main.py
 docker build -t rpf_response .
 ```
 
-### 2. Run Docker Container
+### 2. Run Docker Container with dockerhub
 
 ```bash
 docker run -p 8502:8502 rpf_response
