@@ -97,7 +97,7 @@ for i in storagegrid_dict.values():
 
 sentence_identifier=sentences
 
-st.title("RPF Response Generator - NetApp Storage Grid")
+st.title("RPF Response Generator")
 question = st.text_area("Enter your question:")
 
 st.button("Generate Response")
